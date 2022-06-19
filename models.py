@@ -56,12 +56,13 @@ class ModelTool:
         # Registration of all the methods we support.
         # First key is type, second key is type
         # By genericizing the invocation, we can use common response handling below.
-        type_handlers = {}
-        type_handlers['base_model'  ] = self.get_type_base_model_handlers
-        type_handlers['custom_model'] = self.get_type_custom_model_handlers
-        type_handlers['corpus'      ] = self.get_type_corpus_handlers
-        type_handlers['word'        ] = self.get_type_word_handlers
-        type_handlers['grammar'     ] = self.get_type_grammar_handlers
+        type_handlers = {
+            'base_model': self.get_type_base_model_handlers,
+            'custom_model': self.get_type_custom_model_handlers,
+            'corpus': self.get_type_corpus_handlers,
+            'word': self.get_type_word_handlers,
+            'grammar': self.get_type_grammar_handlers,
+        }
 
         if self.ARGS.type in type_handlers:
             type_handler = type_handlers[self.ARGS.type]()
@@ -87,11 +88,7 @@ class ModelTool:
     Base model functions
     '''
     def get_type_base_model_handlers(self):
-        handlers = {}
-        handlers['list'] = self.STT.list_models
-        handlers['get']  = self.get_base_model
-
-        return handlers
+        return {'list': self.STT.list_models, 'get': self.get_base_model}
     
     def get_base_model(self):
         name = self.config.getValue("SpeechToText", "base_model_name")
@@ -105,16 +102,13 @@ class ModelTool:
     '''
 
     def get_type_custom_model_handlers(self):
-        handlers = {}
-        handlers['list'  ] = self.STT.list_language_models
-        handlers['create'] = self.create_custom_model
-        handlers['get'   ] = self.get_custom_model
-        handlers['delete'] = self.delete_custom_model
-        # Update intentionally mapped to STT 'train' to reduce operation count.  
-        # Thus the SDK's 'add' is our 'create' and SDK's 'train' is our update.  This matches my mental model of speech customization.
-        handlers['update'] = self.train_custom_model
-
-        return handlers
+        return {
+            'list': self.STT.list_language_models,
+            'create': self.create_custom_model,
+            'get': self.get_custom_model,
+            'delete': self.delete_custom_model,
+            'update': self.train_custom_model,
+        }
 
     def get_custom_model(self):
         return self.STT.get_language_model(self.get_customization_id())
@@ -159,14 +153,13 @@ class ModelTool:
     '''
 
     def get_type_corpus_handlers(self):
-        handlers = {}
-        handlers['list'  ] = self.list_corpora
-        handlers['get'   ] = self.get_corpus
-        handlers['create'] = self.add_corpus
-        handlers['update'] = self.update_corpus
-        handlers['delete'] = self.delete_corpus
-
-        return handlers
+        return {
+            'list': self.list_corpora,
+            'get': self.get_corpus,
+            'create': self.add_corpus,
+            'update': self.update_corpus,
+            'delete': self.delete_corpus,
+        }
 
     def list_corpora(self):
         return self.STT.list_corpora(self.get_customization_id())
@@ -192,14 +185,14 @@ class ModelTool:
 
     def get_corpus(self):
         if self.ARGS.name is None:
-            eprint(f"ERROR: A corpus 'name' is required.")
+            eprint("ERROR: A corpus 'name' is required.")
             return None
 
         return self.STT.get_corpus(self.get_customization_id(), self.ARGS.name)
 
     def delete_corpus(self):
         if self.ARGS.name is None:
-            eprint(f"ERROR: A corpus 'name' is required.")
+            eprint("ERROR: A corpus 'name' is required.")
             return None
 
         return self.STT.delete_corpus(self.get_customization_id(), self.ARGS.name)
@@ -209,21 +202,20 @@ class ModelTool:
     '''
 
     def get_type_word_handlers(self):
-        handlers = {}
-        handlers['list'  ] = self.list_words
-        handlers['get'   ] = self.get_word
-        handlers['create'] = self.add_words
-        handlers['update'] = self.add_words
-        handlers['delete'] = self.delete_word
-
-        return handlers
+        return {
+            'list': self.list_words,
+            'get': self.get_word,
+            'create': self.add_words,
+            'update': self.add_words,
+            'delete': self.delete_word,
+        }
     
     def list_words(self):
         return self.STT.list_words(self.get_customization_id())
 
     def get_word(self):
         if self.ARGS.name is None:
-            eprint(f"ERROR: A word 'name' is required.")
+            eprint("ERROR: A word 'name' is required.")
             return None
 
         return self.STT.get_word(self.get_customization_id(), self.ARGS.name)
@@ -236,18 +228,20 @@ class ModelTool:
         with open(self.ARGS.file, 'rb') as word_contents_str:
             #SDK does not allow a file stream, you need to create CustomWord objects instead
             words_json = json.load(word_contents_str)
-            words = []
-            for word_json in words_json['words']:
-                words.append(CustomWord(word        = word_json.get('word'),
-                                        sounds_like = word_json.get('sounds_like'),
-                                        display_as  = word_json.get('display_as')
-                                        ))
+            words = [
+                CustomWord(
+                    word=word_json.get('word'),
+                    sounds_like=word_json.get('sounds_like'),
+                    display_as=word_json.get('display_as'),
+                )
+                for word_json in words_json['words']
+            ]
 
             return self.STT.add_words(self.get_customization_id(), words)
 
     def delete_word(self):
         if self.ARGS.name is None:
-            eprint(f"ERROR: A word 'name' is required.")
+            eprint("ERROR: A word 'name' is required.")
             return None
 
         return self.STT.delete_word(self.get_customization_id(), self.ARGS.name)
@@ -257,14 +251,13 @@ class ModelTool:
     '''
 
     def get_type_grammar_handlers(self):
-        handlers = {}
-        handlers['list'  ] = self.list_grammars
-        handlers['get'   ] = self.get_grammar
-        handlers['create'] = self.add_grammar
-        handlers['update'] = self.update_grammar
-        handlers['delete'] = self.delete_grammar
-
-        return handlers
+        return {
+            'list': self.list_grammars,
+            'get': self.get_grammar,
+            'create': self.add_grammar,
+            'update': self.update_grammar,
+            'delete': self.delete_grammar,
+        }
 
     def list_grammars(self):
         return self.STT.list_grammars(self.get_customization_id())
@@ -290,7 +283,7 @@ class ModelTool:
         elif self.ARGS.file.endswith('.xml'):
             content_type = "application/srgs+xml"
         else:
-            eprint(f"ERROR: Expected .abnf or .xml file type for grammar.")
+            eprint("ERROR: Expected .abnf or .xml file type for grammar.")
             return None
 
         with open(self.ARGS.file, 'rb') as grammar_contents:
@@ -298,14 +291,14 @@ class ModelTool:
 
     def get_grammar(self):
         if self.ARGS.name is None:
-            eprint(f"ERROR: A grammar 'name' is required.")
+            eprint("ERROR: A grammar 'name' is required.")
             return None
 
         return self.STT.get_grammar(self.get_customization_id(), self.ARGS.name)
 
     def delete_grammar(self):
         if self.ARGS.name is None:
-            eprint(f"ERROR: A grammar 'name' is required.")
+            eprint("ERROR: A grammar 'name' is required.")
             return None
 
         return self.STT.delete_grammar(self.get_customization_id(), self.ARGS.name)
