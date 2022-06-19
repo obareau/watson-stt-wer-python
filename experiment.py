@@ -59,21 +59,21 @@ def run_experiment(config_file, output_dir, stt_param_name, stt_config_val):
 
 def run_all_experiments(config_file, output_dir):
 
-    #Customize this function to process the configuration settings
-    #that need to be tested
+        #Customize this function to process the configuration settings
+        #that need to be tested
 
-    #Set variable for stt configuration to iterate through
-    sensitivity = 0.3
+        #Set variable for stt configuration to iterate through
+        sensitivity = 0.3
 
-    #Iterate through possible values of the setting.
-    while sensitivity < 0.5:
+            #Iterate through possible values of the setting.
+        while sensitivity < 0.5:
 
-        #Run the experiment for the specific configuration value
-        #You must include the exact name of the stt parameter being tested
-        run_experiment(config_file, output_dir, "speech_detector_sensitivity", sensitivity)
+                #Run the experiment for the specific configuration value
+                #You must include the exact name of the stt parameter being tested
+                run_experiment(config_file, output_dir, "speech_detector_sensitivity", sensitivity)
 
-        #Move to the next value to be tested
-        sensitivity = sensitivity + 0.1
+                        #Move to the next value to be tested
+                sensitivity += 0.1
 
 
 def run_report(output_dir, config):

@@ -37,9 +37,11 @@ class MyRecognizeCallback(RecognizeCallback):
     def on_data(self, data):
         #print(json.dumps(data, indent=2))
         try:
-            transcription = ""
-            for result in data['results']:
-                transcription += result["alternatives"][0]["transcript"]
+            transcription = "".join(
+                result["alternatives"][0]["transcript"]
+                for result in data['results']
+            )
+
             #print(transcription)
             self.transcriptions.add(self.audio_file_name, transcription)
         except:
@@ -57,13 +59,14 @@ class Transcriber:
         self.config = config
         self.STT = self.createSTT()
         self.transcriptions = Transcriptions()
-        self.audio_types = {}
-        self.audio_types["wav"]  = "audio/wav"
-        self.audio_types["mp3"]  = "audio/mp3"
-        self.audio_types["mpeg"] = "audio/mpeg"
-        self.audio_types["ogg"]  = "audio/ogg"
-        self.audio_types["webm"]  = "audio/webm"
-        self.audio_types["opus"]  = "audio/webm"
+        self.audio_types = {
+            "wav": "audio/wav",
+            "mp3": "audio/mp3",
+            "mpeg": "audio/mpeg",
+            "ogg": "audio/ogg",
+            "webm": "audio/webm",
+            "opus": "audio/webm",
+        }
 
     def createSTT(self):
         apikey            = self.config.getValue("SpeechToText", "apikey")
@@ -162,11 +165,11 @@ class Transcriber:
                     file2_df = pd.read_csv(reference_file_name)
 
                     missing_columns = False
-                    if not "Audio File Name" in file2_df.columns:
+                    if "Audio File Name" not in file2_df.columns:
                         missing_columns = True
                         print(f"Warning: 'Audio File Name' column missing in reference transcriptions file {reference_file_name}; will not merge.")
 
-                    if not "Reference" in file2_df.columns:
+                    if "Reference" not in file2_df.columns:
                         missing_columns = True
                         print(f"Warning: 'Reference' column missing in reference transcriptions file {reference_file_name}; will not merge.")
 
@@ -198,7 +201,7 @@ def main():
     if output_dir is not None and len(output_dir) > 0:
         os.makedirs(output_dir, exist_ok=True)
 
-    files = [f for f in os.listdir(audio_file_dir)]
+    files = list(os.listdir(audio_file_dir))
     for file in sorted(files):
         if transcriber.getAudioType(file) is not None:
             transcriber.transcribe(audio_file_dir + "/" + file)

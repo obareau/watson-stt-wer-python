@@ -86,13 +86,16 @@ class AnalysisResults:
         return tuple
 
     def get_summary(self):
-        results = {}
-        results["Number of Samples"]      = len(self.results)
-        results["Total Words"]            = self.total_words
-        results["Total Word Errors"]      = self.total_word_errors
-        results["Word Error Rate"]        = round(self.total_word_errors / self.total_words, 4)
-        results["Total Sentence Errors"]  = self.total_sent_errors
-        results["Sentence Error Rate"]    = round(self.total_sent_errors / len(self.results), 4)
+        results = {
+            "Number of Samples": len(self.results),
+            "Total Words": self.total_words,
+            "Total Word Errors": self.total_word_errors,
+            "Word Error Rate": round(self.total_word_errors / self.total_words, 4),
+            "Total Sentence Errors": self.total_sent_errors,
+            "Sentence Error Rate": round(
+                self.total_sent_errors / len(self.results), 4
+            ),
+        }
 
         #Store transcription configuration in the summary, for ease of comparing different summary files
         #Don't store/compare sensitive values
@@ -177,8 +180,12 @@ class Analyzer:
 
         #JIWER 2.3+ defines ReduceToListOfListOfWords, breaking API change from SentencesToListOfWords
         if self.config.getBoolean("Transformations", "sentences_to_words") and getattr(jiwer, "ReduceToListOfListOfWords", None) is not None:
-            pipeline.append(jiwer.ReduceToSingleSentence())
-            pipeline.append(jiwer.ReduceToListOfListOfWords(word_delimiter=" "))
+            pipeline.extend(
+                (
+                    jiwer.ReduceToSingleSentence(),
+                    jiwer.ReduceToListOfListOfWords(word_delimiter=" "),
+                )
+            )
 
         return jiwer.Compose(pipeline)
 
@@ -221,14 +228,13 @@ class Analyzer:
         #Simple set arithmetic does not work if the same word appears multiple times in the reference transcription
         #differences = list(set(cleaned_ref) - set(cleaned_hyp))
 
-        differences = list()
+        differences = []
         for word in set(ref_list):
             ref_count = ref_list.count(word)
             hyp_count = hyp_list.count(word)
             diff = ref_count - hyp_count
             if diff > 0:
-                for _ in range(diff):
-                    differences.append(word)
+                differences.extend(word for _ in range(diff))
         return differences
 
 def main():
